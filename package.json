@@ -1,0 +1,10 @@
+{
+  "name": "Horloge cadran Leclerc V4",
+  "author": "gaetanchristophe-commits",
+  "desc": "Horloge à aiguilles et afficheur LED, jour et date de part et d'autre du cadran, aux couleurs E.Leclerc",
+  "platforms": ["pi/epoch-1", "pi/epoch-2"],
+  "offline": {
+    "support": "yes",
+    "info": "Fonctionne sans Internet, mais l'heure doit etre exacte"
+  }
+}
