@@ -76,7 +76,7 @@ local shader_chiffre = resource.create_shader[[
     float tout    = max(max(max(a, b), max(c, d)), max(max(e, f), g));
     float allume  = max(max(max(a * sa, b * sb), max(c * sc, d * sd)),
                         max(max(e * se, f * sf), g * sg));
-    vec3 eteint = vec3(0.18, 0.04, 0.03);
+    vec3 eteint = vec3(0.124, 0.039, 0.035);
     vec3 rouge  = vec3(1.00, 0.165, 0.10);
     vec3 col = mix(eteint, rouge, allume / max(tout, 0.001));
     gl_FragColor = texture2D(Texture, TexCoord) * vec4(col, tout);
@@ -209,7 +209,7 @@ local SEGMENTS = {
   ["5"] = "afgcd",  ["6"] = "afgedc", ["7"] = "abc",  ["8"] = "abcdefg", ["9"] = "abcfgd",
 }
 local LED_ROUGE  = {1.00, 0.165, 0.10}
-local LED_ETEINT = {0.18, 0.04, 0.03}
+local LED_ETEINT = {0.124, 0.039, 0.035}   -- a garder identique a "eteint" dans shader_chiffre
 local LED_PENTE  = 0.14
 
 -- Chiffre dont le coin haut gauche est en (x, y), s = pixels par unite
@@ -282,13 +282,23 @@ local function dates_cotes(cx, cy, R, d)
   centre(droite[1], xd, y1, taille, BLANC)
   centre(droite[2], xd, y2, grand,  BLANC)
 
-  -- Heure digitale 24 h facon afficheur LED, centree sous le jour
+  -- Heure digitale 24 h facon afficheur LED, calee en bas a droite.
+  -- Elle s'agrandit dans l'espace que laisse la courbe du cadran, sans le toucher.
   local heure  = string.format("%02d:%02d", d.hour, d.min)
   local haut_h = bas + marge
   local bas_h  = HEIGHT * 0.96
-  local s = math.min(max_w / (LED_LARGEUR + 2 * LED_MARGE),
-                     (bas_h - haut_h) * 0.65 / (LED_HAUTEUR + 2 * LED_MARGE))
-  afficheur_led(heure, xd, (haut_h + bas_h) / 2, s, d.sec % 2 == 0)
+  local droite = WIDTH - HEIGHT * 0.03
+  local demi_l = LED_LARGEUR / 2 + LED_MARGE
+  local demi_h = LED_HAUTEUR / 2 + LED_MARGE
+  local s_max  = (bas_h - haut_h) / (2 * demi_h)
+  local s, yc  = s_max, 0
+  for _ = 1, 5 do
+    yc = bas_h - demi_h * s
+    local dy   = math.max((yc - demi_h * s) - cy, 0)   -- haut du boitier
+    local bord = cx + math.sqrt(math.max(R * R - dy * dy, 0)) + R * 0.07
+    s = math.min(s_max, (droite - bord) / (2 * demi_l))
+  end
+  afficheur_led(heure, droite - demi_l * s, yc, s, d.sec % 2 == 0)
 end
 
 function node.render()
